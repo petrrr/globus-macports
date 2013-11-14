@@ -4,25 +4,30 @@
 PortSystem          1.0
 
 name                igtf-certificates
-version             1.52
+version             1.54
 categories          security
 platforms           darwin
 maintainers         nikhef.nl:dennisvd openmaintainer
 
-#license            (check)
+license             { CCBY-3 Permissive } MPL-1.1+
 
-description         The trusted IGTF CA-certificates
+description         The IGTF trusted certificates and metadata
 
-#long_description   (none)
+long_description    \
+    The International Grid Trust Federation (IGTF) maintains a list of trust \
+    anchors, root certificates and related meta-information for all the \
+    accredited authorities, i.e., those that meet or exceed the criteria \
+    mentioned in the Authentication Profiles accepted by the IGTF. \
+    For a list of those profiles, please refer to the website.
 
 homepage            http://www.igtf.net
 
 master_sites        http://dist.eugridpma.info/distribution/igtf/${version}
 distname            igtf-policy-installation-bundle-${version}
 
-checksums           md5     7ca4dc745e7f220ec05280b053ba2b33 \
-                    rmd160 7a98be1b7070a701bff262638f484bdcaca5681e \
-                    sha256 3de95c40b32345cf6b07f4def744dc7d7502e73b494dd165a4067e6d5356793a
+checksums           md5     6ed91458ce7f96565793b06818b1d487 \
+                    rmd160  3aa0f5954992bb41434e601c62a1c4a8688e32ef \
+                    sha256  6b83ddf67a84380296c98428de7b834214ec9ca1a3081668f1a1ed5313bab38c
 
 configure.args-append \
 	--with-profile=classic \
@@ -33,7 +38,26 @@ configure.args-append \
 build {}
 
 post-destroot { 
-    # symlink GLOBUS_LOCATION/share/certificates to the igtf distribution
-    # so tools automatically find the CAs
+    # symlink, so that tools find the certificates
+    # (from $GLOBUS_LOCATION/share/ to locate defined IGTF distribution)
+    #
     ln -s ${prefix}/etc/grid-security/certificates ${destroot}${prefix}/share/
+
+    # add copies of license files, to comply with licensing
+    # REMINDER: change this for version 1.55
+    set dest_doc ${destroot}${prefix}/share/doc
+    xinstall -d ${dest_doc}
+    xinstall -m 644 -W ${worksrcpath} \
+        README.txt \
+          ${dest_doc}
+    xinstall -m 644 -W  ${portpath}/files \
+        CHANGES.txt	\
+        LICENSE.txt	\
+        LICENSE_CC-BY-3.0.txt \
+        LICENSE_MPL-1.1.txt \
+          ${dest_doc}
 }
+
+livecheck.type      regex
+livecheck.url       http://dist.eugridpma.info/distribution/igtf
+livecheck.regex     ">(\\d+\\.\\d{2})/<"
